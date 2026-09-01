@@ -1,0 +1,32 @@
+/**
+ * ALU de 3 entradas (X, Y, Z) de 16 bits
+ */
+CHIP ALU3Input {
+    IN  x[16], y[16], z[16],
+        op[3];
+    OUT out[16],
+        zr, ng;
+
+    PARTS:
+    // Operaciones intermedias con Add16, And16, Or16, Xor16
+    Add16(a=x, b=y, out=xY);
+    And16(a=x, b=y, out=x&Y);
+    Or16(a=x, b=y, out=x_Y);
+    Xor16(a=x, b=y, out=XY_);
+
+    // X + Y + Z
+    Add16(a=xY, b=z, out=out0);
+
+    // (X AND Y) OR Z
+    Or16(a=x&Y, b=z, out=out1);
+
+    // (X OR Y) AND Z
+    And16(a=x_Y, b=z, out=out2);
+
+    // (X + Y) - Z
+    Not16(in=z, out=notZ);
+    Add16(a=notZ, b[0]=true, b[1..15]=false, out=negZ);
+    Add16(a=xY, b=negZ, out=out3);
+
+    // X XOR Y XOR Z
+    Xor16(a=XY_, b=z, out=out4);
