@@ -1,32 +1,45 @@
 /**
- * ALU de 3 entradas (X, Y, Z) de 16 bits
+ * ALU de tres entradas de 16 bits (X, Y, Z), controlada por op[3].
+ * Selecciona una de 8 operaciones lógicas/aritméticas y calcula las banderas zr (out == 0) y ng (out < 0).
  */
-CHIP ALU3Input {
+CHIP ALU3Inputs {
     IN  x[16], y[16], z[16],
         op[3];
     OUT out[16],
         zr, ng;
 
     PARTS:
-    // Operaciones intermedias con Add16, And16, Or16, Xor16
-    Add16(a=x, b=y, out=xY);
-    And16(a=x, b=y, out=x&Y);
-    Or16(a=x, b=y, out=x_Y);
-    Xor16(a=x, b=y, out=XY_);
+    // Operaciones intermedias entre X, Y
+    Add16(a=x, b=y, out=addXY);
+    And16(a=x, b=y, out=andXY);
+    Or16(a=x, b=y, out=orXY);
+    Xor16(a=x, b=y, out=xorXY);
 
     // X + Y + Z
-    Add16(a=xY, b=z, out=out0);
-
-    // (X AND Y) OR Z
-    Or16(a=x&Y, b=z, out=out1);
-
-    // (X OR Y) AND Z
-    And16(a=x_Y, b=z, out=out2);
+    Add16(a=addXY, b=z, out=out0);
 
     // (X + Y) - Z
     Not16(in=z, out=notZ);
-    Add16(a=notZ, b[0]=true, b[1..15]=false, out=negZ);
-    Add16(a=xY, b=negZ, out=out3);
+    Inc16(in=notZ, out=negZ);
+    Add16(a=addXY, b=negZ, out=out1);
 
+    // (X AND Y) OR Z
+    Or16(a=andXY, b=z, out=out2);
+
+    // (X OR Y) AND Z
+    And16(a=orXY, b=z, out=out3);
+
+    // X AND Y AND Z
+    And16(a=andXY, b=z, out=out4);
+
+    // X OR Y OR Z
+    Or16(a=orXY, b=z, out=out5);
     // X XOR Y XOR Z
-    Xor16(a=XY_, b=z, out=out4);
+    Xor16(a=xorXY, b=z, out=out6);
+
+    // (X AND Y) OR (X AND Z) OR (Y AND Z)
+    And16(a=x, b=z, out=andXZ);
+    And16(a=y, b=z, out=andYZ);
+    Or16(a=andXY, b=andXZ, out=orTemp);
+    Or16(a=orTemp, b=andYZ, out=out7);
+
