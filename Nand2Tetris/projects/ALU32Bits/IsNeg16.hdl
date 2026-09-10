@@ -1,0 +1,12 @@
+// File name: projects/2/IsNeg16.hdl
+/**
+ * Devuelve 1 si el número de 16 bits en complemento a 2 es negativo.
+ * El signo vive completo en el MSB (bit 15), no hace falta más lógica.
+ */
+CHIP IsNeg16 {
+    IN in[16];
+    OUT out;
+
+    PARTS:
+    Or(a=in[15], b=false, out=out);
+}
