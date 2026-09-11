@@ -1,0 +1,69 @@
+// File name: projects/2/ALU32.hdl
+/**
+ * ALU de 32 bits construida a partir de piezas de 16 bits, respetando
+ * el límite de bus del simulador (max 16 bits por puerto).
+ *
+ * Los controles zx,nx,zy,ny,f,no son los MISMOS para ambas mitades:
+ * la ALU32 ejecuta una sola instrucción sobre los 32 bits completos,
+ * no una por mitad.
+ *
+ * El único cable que cruza entre mitades es el carry de la suma.
+ * Por eso se usa Add16WithC (con cin/cout) en vez del Add16 estándar,
+ * que descarta ese bit. AND, NOT y los ceros no necesitan carry:
+ * son bit a bit, así que ahí sí se duplica la lógica sin cruce.
+ */
+CHIP ALU32 {
+    IN  x0a15[16], x16a31[16], y0a15[16], y16a31[16],
+        zx, nx, zy, ny, f, no;
+    OUT out[32],
+        zr, ng;
+
+    PARTS:
+    // Preprocesamiento X, independiente por mitad
+    Mux16(a=x0a15,  b=false, sel=zx, out=xz0);
+    Mux16(a=x16a31, b=false, sel=zx, out=xz1);
+    Not16(in=xz0, out=nxz0);
+    Not16(in=xz1, out=nxz1);
+    Mux16(a=xz0, b=nxz0, sel=nx, out=xf0);
+    Mux16(a=xz1, b=nxz1, sel=nx, out=xf1);
+
+    // Preprocesamiento Y, independiente por mitad
+    Mux16(a=y0a15,  b=false, sel=zy, out=yz0);
+    Mux16(a=y16a31, b=false, sel=zy, out=yz1);
+    Not16(in=yz0, out=nyz0);
+    Not16(in=yz1, out=nyz1);
+    Mux16(a=yz0, b=nyz0, sel=ny, out=yf0);
+    Mux16(a=yz1, b=nyz1, sel=ny, out=yf1);
+
+    // AND bit a bit, no requiere carry
+    And16(a=xf0, b=yf0, out=and0);
+    And16(a=xf1, b=yf1, out=and1);
+
+    // Suma con propagación de carry entre mitades: aquí está el punto
+    // que rompe el enfoque ingenuo de "llamar ALU 16 dos veces".
+    Add16WithC(a=xf0, b=yf0, cin=false, out=sum0, cout=carry);
+    Add16WithC(a=xf1, b=yf1, cin=carry, out=sum1, cout=coutFinal);
+
+    // Selección AND vs suma, por mitad
+    Mux16(a=and0, b=sum0, sel=f, out=pre0);
+    Mux16(a=and1, b=sum1, sel=f, out=pre1);
+
+    // Negación final, bit a bit, sin carry
+    Not16(in=pre0, out=npre0);
+    Not16(in=pre1, out=npre1);
+    Mux16(a=pre0, b=npre0, sel=no, out=out[0..15]);
+    Mux16(a=pre1, b=npre1, sel=no, out=out[16..31]);
+
+    // zr: cero global exige que las 32 posiciones estén en 0
+    Or8Way(in=out[0..7],   out=or0);
+    Or8Way(in=out[8..15],  out=or1);
+    Or8Way(in=out[16..23], out=or2);
+    Or8Way(in=out[24..31], out=or3);
+    Or(a=or0, b=or1, out=orA);
+    Or(a=or2, b=or3, out=orB);
+    Or(a=orA, b=orB, out=anyBit);
+    Not(in=anyBit, out=zr);
+
+    // ng: el signo de los 32 bits vive solo en el bit 31 (MSB de la mitad alta)
+    And16(a=out[16..31], b=out[16..31], out[15]=ng);
+}
