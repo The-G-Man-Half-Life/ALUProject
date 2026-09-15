@@ -15,7 +15,7 @@
 CHIP ALU32 {
     IN  x0a15[16], x16a31[16], y0a15[16], y16a31[16],
         zx, nx, zy, ny, f, no;
-    OUT out[32],
+    OUT out1[16],out2[16],
         zr, ng;
 
     PARTS:
@@ -51,19 +51,18 @@ CHIP ALU32 {
     // Negación final, bit a bit, sin carry
     Not16(in=pre0, out=npre0);
     Not16(in=pre1, out=npre1);
-    Mux16(a=pre0, b=npre0, sel=no, out=out[0..15]);
-    Mux16(a=pre1, b=npre1, sel=no, out=out[16..31]);
+    Mux16(a=pre0, b=npre0, sel=no, out=out1, out[0..7]=out1Low, out[8..15]=out1High);
+    Mux16(a=pre1, b=npre1, sel=no, out=out2, out[0..7]=out2Low, out[8..15]=out2High, out[15]=ng); 
+    //Tomamos la parte final para el indicador de ng
 
     // zr: cero global exige que las 32 posiciones estén en 0
-    Or8Way(in=out[0..7],   out=or0);
-    Or8Way(in=out[8..15],  out=or1);
-    Or8Way(in=out[16..23], out=or2);
-    Or8Way(in=out[24..31], out=or3);
+    Or8Way(in=out1Low,   out=or0);
+    Or8Way(in=out1High,  out=or1);
+    Or8Way(in=out2Low,   out=or2);
+    Or8Way(in=out2High, out=or3);
     Or(a=or0, b=or1, out=orA);
     Or(a=or2, b=or3, out=orB);
     Or(a=orA, b=orB, out=anyBit);
     Not(in=anyBit, out=zr);
 
-    // ng: el signo de los 32 bits vive solo en el bit 31 (MSB de la mitad alta)
-    And16(a=out[16..31], b=out[16..31], out[15]=ng);
 }
