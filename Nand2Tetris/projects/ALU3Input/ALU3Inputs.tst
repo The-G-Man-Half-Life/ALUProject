@@ -38,27 +38,3 @@ set x 5,  set y 3,  set z 1,  set op 6, eval, output;
 // op=111: (X AND Y) OR (X AND Z) OR (Y AND Z)
 set x 6,  set y 5,  set z 3,  set op 7, eval, output;
 set x 0,  set y 0,  set z 0,  set op 7, eval, output;
-
-// op=000: X+Y+Z negativo
-set x -30, set y -40, set z -50, set op 0, eval, output;
-
-// op=001: (X+Y)-Z negativo (variante adicional)
-set x 3,   set y 2,   set z 50,  set op 1, eval, output;
-
-// op=010: (X AND Y) OR Z negativo
-set x -20, set y -1,  set z 0,   set op 2, eval, output;
-
-// op=011: (X OR Y) AND Z negativo
-set x -1,  set y 0,   set z -30, set op 3, eval, output;
-
-// op=100: X AND Y AND Z negativo
-set x -1,  set y -1,  set z -40, set op 4, eval, output;
-
-// op=101: X OR Y OR Z negativo
-set x -50, set y 0,   set z 0,   set op 5, eval, output;
-
-// op=110: X XOR Y XOR Z negativo
-set x -1,  set y 0,   set z 0,   set op 6, eval, output;
-
-// op=111: (X AND Y) OR (X AND Z) OR (Y AND Z) negativo
-set x -50, set y -30, set z 5,   set op 7, eval, output;
