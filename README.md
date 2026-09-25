@@ -1,5 +1,7 @@
 # Primer Parcial | Organización de Computadores
 
+**Video de sustentación:** https://youtu.be/-yRqSXKz7B4
+
 ## Índice
 1. [Parte 1 de la entrega: ALU de 32 bits](#parte-1-de-la-entrega-alu-de-32-bits)
    1. [Diagrama de Circuito](#diagrama-de-circuito)
